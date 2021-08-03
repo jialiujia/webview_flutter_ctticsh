@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'webview_flutter_ctticsh'
-  s.version          = '0.0.1'
+  s.version          = '0.0.2'
   s.summary          = '独立出来的企业和海事局版的webview_flutter^0.3.24组件'
   s.description      = <<-DESC
 独立出来的企业和海事局版的webview_flutter^0.3.24组件
