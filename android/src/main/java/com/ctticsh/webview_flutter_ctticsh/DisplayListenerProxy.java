@@ -41,7 +41,7 @@ import java.util.ArrayList;
 public class DisplayListenerProxy {
     private static final String TAG = "DisplayListenerProxy";
 
-    private ArrayList<DisplayManager.DisplayListener> listenersBeforeWebView;
+    private ArrayList<DisplayListener> listenersBeforeWebView;
 
     /** Should be called prior to the webview's initialization. */
     void onPreWebViewInitialization(DisplayManager displayManager) {
@@ -49,9 +49,8 @@ public class DisplayListenerProxy {
     }
 
     /** Should be called after the webview's initialization. */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     void onPostWebViewInitialization(final DisplayManager displayManager) {
-        final ArrayList<DisplayManager.DisplayListener> webViewListeners = yoinkDisplayListeners(displayManager);
+        final ArrayList<DisplayListener> webViewListeners = yoinkDisplayListeners(displayManager);
         // We recorded the list of listeners prior to initializing webview, any new listeners we see
         // after initializing the webview are listeners added by the webview.
         webViewListeners.removeAll(listenersBeforeWebView);
@@ -70,7 +69,7 @@ public class DisplayListenerProxy {
             return;
         }
 
-        for (DisplayManager.DisplayListener webViewListener : webViewListeners) {
+        for (DisplayListener webViewListener : webViewListeners) {
             // Note that while DisplayManager.unregisterDisplayListener throws when given an
             // unregistered listener, this isn't an issue as the WebView code never calls
             // unregisterDisplayListener.
@@ -79,17 +78,17 @@ public class DisplayListenerProxy {
             // We never explicitly unregister this listener as the webview's listener is never
             // unregistered (it's released when the process is terminated).
             displayManager.registerDisplayListener(
-                    new DisplayManager.DisplayListener() {
+                    new DisplayListener() {
                         @Override
                         public void onDisplayAdded(int displayId) {
-                            for (DisplayManager.DisplayListener webViewListener : webViewListeners) {
+                            for (DisplayListener webViewListener : webViewListeners) {
                                 webViewListener.onDisplayAdded(displayId);
                             }
                         }
 
                         @Override
                         public void onDisplayRemoved(int displayId) {
-                            for (DisplayManager.DisplayListener webViewListener : webViewListeners) {
+                            for (DisplayListener webViewListener : webViewListeners) {
                                 webViewListener.onDisplayRemoved(displayId);
                             }
                         }
@@ -99,7 +98,7 @@ public class DisplayListenerProxy {
                             if (displayManager.getDisplay(displayId) == null) {
                                 return;
                             }
-                            for (DisplayManager.DisplayListener webViewListener : webViewListeners) {
+                            for (DisplayListener webViewListener : webViewListeners) {
                                 webViewListener.onDisplayChanged(displayId);
                             }
                         }
@@ -108,9 +107,8 @@ public class DisplayListenerProxy {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     @SuppressWarnings({"unchecked", "PrivateApi"})
-    private static ArrayList<DisplayManager.DisplayListener> yoinkDisplayListeners(DisplayManager displayManager) {
+    private static ArrayList<DisplayListener> yoinkDisplayListeners(DisplayManager displayManager) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // We cannot use reflection on Android P, but it shouldn't matter as it shipped
             // with WebView 66.0.3359.158 and the WebView version the bug this code is working around was
@@ -139,7 +137,7 @@ public class DisplayListenerProxy {
                 listeners.add(listener);
             }
             return listeners;
-        } catch (Exception e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             Log.w(TAG, "Could not extract WebView's display listeners. " + e);
             return new ArrayList<>();
         }
